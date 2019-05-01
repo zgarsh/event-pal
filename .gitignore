@@ -1,0 +1,3 @@
+chatterdb.db
+*.pyc
+venv/

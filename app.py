@@ -29,7 +29,10 @@ db = SQLAlchemy(app)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
+    creator = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.Integer, nullable=False)
+    name = db.Column(db.String(80))
+    phone = db.Column(db.Integer)
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -52,8 +55,11 @@ def choose_action(request):
 
     fullMessage = request.form['Body']
 
+    responseText = 'Keep working'
+
     # Get all events for that user
     thisUsersEvents = db.session.query(Event).filter_by(owner=1).all()
+    thisUsersUsers = db.session.query(User).filter_by(creator=1).all()
 
     # Determine if any of user's events has status <3. If yes, prompt them to complete it
     # ASSUMPTION: only one event per user can have status <3 at a time
@@ -70,8 +76,22 @@ def choose_action(request):
             event_id = thisUsersEvents[i].id
             responseText = give_event_time(event_id, request)
 
+    # Determine if user is creating a new user (if user table has entry with
+    # this user as a creator and status <2)
+    for i in range(len(thisUsersUsers)):
+        if thisUsersUsers[i].status == 0:
+            user_in_prog = thisUsersUsers[i].id
+            responseText = give_user_name(user_in_prog, request)
+
+        elif thisUsersUsers[i].status == 1:
+            user_in_prog = thisUsersUsers[i].id
+            responseText = give_user_phone(user_in_prog, request)
+
     if fullMessage == 'Create new event':
         responseText = create_event(request)
+
+    if fullMessage == 'Add user':
+        responseText = create_user(request)
 
     return responseText
 
@@ -83,11 +103,12 @@ def create_event(request):
     event = Event(status=0, owner=1)
     db.session.add(event)
     db.session.commit()
-    print('created new event:', event.name)
+    print('created new event')
 
     responseText = "Ok! What's a good title for the event? Say something like 'Abby's quincinera'"
 
     return responseText
+
 
 def give_event_name(event_id, request):
     """names event referencing request and returns response text"""
@@ -96,10 +117,12 @@ def give_event_name(event_id, request):
     event.name = request.form['Body']
     event.status = 1
     db.session.commit()
+    # print('gave event #', event.id ' name: ', event.name)
 
     responseText = "Alright - We'll call it " + event.name + ". Where will " + event.name + " take place?"
 
     return responseText
+
 
 def give_event_location(event_id, request):
     """add event location by referencing request and return response text"""
@@ -108,10 +131,12 @@ def give_event_location(event_id, request):
     event.location = request.form['Body']
     event.status = 2
     db.session.commit()
+    # print('gave event #' + event.id ' location:' + event.location)
 
     responseText = "Ok. So " + event.name + " will take place at " + event.location + ". What date and time?"
 
     return responseText
+
 
 def give_event_time(event_id, request):
     """add event location by referencing request and return response text"""
@@ -120,10 +145,49 @@ def give_event_time(event_id, request):
     event.time = request.form['Body']
     event.status = 3
     db.session.commit()
+    # print('gave event #' + event.id ' time:' + event.time)
 
     responseText = "Perfect. " + event.name + " at " + event.location + " at " + event.time + "."
 
     return responseText
+
+
+def create_user(request):
+    """create new user given request"""
+
+    user = User(status=0, creator=1)
+    db.session.add(user)
+    db.session.commit()
+    print('created new user')
+
+    responseText = "Ok I'll add a new user. What is their name?"
+
+    return responseText
+
+def give_user_name(user_id, request):
+    """provide users name given user ID and request object"""
+
+    user = db.session.query(User).filter_by(id=user_id).one()
+    user.name = request.form['Body']
+    user.status = 1
+    db.session.commit()
+
+    responseText = "Created new user named " + user.name + ". What's their number?"
+
+    return responseText
+
+def give_user_phone(user_id, request):
+    """provide users phone number gievn user ID and request object"""
+
+    user = db.session.query(User).filter_by(id=user_id).one()
+    user.phone = request.form['Body']
+    user.status = 2
+    db.session.commit()
+
+    responseText = "Created new user named " + user.name + " with phone number: " + str(user.phone)
+
+    return responseText
+
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():

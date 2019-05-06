@@ -36,11 +36,17 @@ class User(db.Model):
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    owner = db.Column(db.Integer, nullable=False)
-    status = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(80))
     location = db.Column(db.String(80))
     time = db.Column(db.String(80))
+    owner = db.Column(db.Integer, nullable=False)
+    status = db.Column(db.Integer, nullable=False)
+
+class Attendees(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
+    status = db.Column(db.Integer, nullable = False, default=0)
 
 
 ### Event statuses:
@@ -48,6 +54,12 @@ class Event(db.Model):
 # 1: has name, needs location - populate 'location'
 # 2: has name and location, needs time - populate 'time'
 # 3: completed event
+
+### Attendance statuses:
+# 0: invited
+# 1: confirmed
+# 2: maybe
+# 3: declined
 
 
 def choose_action(request):
@@ -75,6 +87,10 @@ def choose_action(request):
         elif thisUsersEvents[i].status == 2:
             event_id = thisUsersEvents[i].id
             responseText = give_event_time(event_id, request)
+
+        elif thisUsersEvents[i].status == 3:
+            event_id = thisUsersEvents[i].id
+            responseText = give_event_attendees(event_id, request)
 
     # Determine if user is creating a new user (if user table has entry with
     # this user as a creator and status <2)
@@ -147,8 +163,36 @@ def give_event_time(event_id, request):
     db.session.commit()
     # print('gave event #' + event.id ' time:' + event.time)
 
-    responseText = "Perfect. " + event.name + " at " + event.location + " at " + event.time + "."
+    responseText = "Perfect. " + event.name + " at " + event.location + " at " + event.time + ". Who should I invite? send user IDs separated by a comma."
 
+    return responseText
+
+
+def give_event_attendees(event_id, request):
+    """add event attendees by referencing request and return response text"""
+
+    responseText = ''
+
+    attendeetext = request.form['Body']
+    attendeelist = attendeetext.split(', ')
+    successfullyadded = []
+    for i in attendeelist:
+        user_exists = db.session.query(User.id).filter_by(id=i).scalar() is not None
+        if user_exists:
+            thisattendee = int(i)
+            relationship = Attendees(status=0, user_id=thisattendee, event_id=event_id)
+            db.session.add(relationship)
+            db.session.commit()
+            successfullyadded.append(str(thisattendee))
+        else:
+            responseText += 'No user with ID ' + i
+
+    # update event status to 4
+    event = db.session.query(Event).filter_by(id=event_id).one()
+    event.status = 4
+    db.session.commit()
+
+    responseText += ' Added users ' + ' and '.join(successfullyadded)
     return responseText
 
 

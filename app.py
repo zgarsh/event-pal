@@ -32,7 +32,7 @@ class User(db.Model):
     creator = db.Column(db.Integer, nullable=False)
     status = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(80))
-    phone = db.Column(db.Integer)
+    phone = db.Column(db.String(80))
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -48,12 +48,18 @@ class Attendees(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'))
     status = db.Column(db.Integer, nullable = False, default=0)
 
+class Friends(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    users_friend_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
 
 ### Event statuses:
 # 0: no info - create new event and populate 'name'
 # 1: has name, needs location - populate 'location'
 # 2: has name and location, needs time - populate 'time'
-# 3: completed event
+# 3: needs invitees
+# 4: completed event
 
 ### Attendance statuses:
 # 0: invited
@@ -64,6 +70,9 @@ class Attendees(db.Model):
 
 def choose_action(request):
     """receives request and decides what to do next"""
+
+    # print(request.values)
+    # print(request.values['From'])
 
     fullMessage = request.form['Body']
 
@@ -215,6 +224,7 @@ def create_user(request):
 
     return responseText
 
+
 def give_user_name(user_id, request):
     """provide users name given user ID and request object"""
 
@@ -227,12 +237,22 @@ def give_user_name(user_id, request):
 
     return responseText
 
+
 def give_user_phone(user_id, request):
     """provide users phone number gievn user ID and request object"""
 
+    # assign phone number and increment new user's status
     user = db.session.query(User).filter_by(id=user_id).one()
     user.phone = request.form['Body']
     user.status = 2
+
+    # if user is adding someone else, add that person as their friend
+    this_user_phone = request.values['From']
+    this_user_id = db.session.query(User).filter_by(phone=this_user_phone).one().id
+    if this_user_id != user_id:
+        friendship = Friends(user_id=1, users_friend_id=user_id)
+        db.session.add(friendship)
+
     db.session.commit()
 
     responseText = "Created new user named " + user.name + " with phone number: " + str(user.phone)
@@ -244,7 +264,6 @@ def give_user_phone(user_id, request):
 def sms_reply():
     message_body = request.form['Body']
 
-    # responseText = create_event(request)
     responseText = choose_action(request)
 
     resp = MessagingResponse()

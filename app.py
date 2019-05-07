@@ -1,6 +1,8 @@
 import os
 from flask import Flask, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.rest import Client
+from secrets import twilio_account_sid, twilio_auth_token, twilio_number
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -11,6 +13,26 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_file
 
 db = SQLAlchemy(app)
+# client for sending SMS that aren't responses (inviting guests)
+client = Client(twilio_account_sid, twilio_auth_token)
+
+# sample
+def send_sms():
+
+    body = "Thank you for subscribing to CAT FACTS!"
+
+    to = '+17147560044',
+    client.messages.create(
+        to,
+        from_=twilio_number,
+        body=body)
+
+
+#############################
+
+# Oops - I probably should have used twilio cookies instead of tracking conversation status
+# - see info here: https://www.twilio.com/blog/2014/07/the-definitive-guide-to-sms-conversation-tracking.html
+# also see this text survey tutorial: https://www.twilio.com/docs/voice/tutorials/automated-survey-python-flask
 
 # tutorial for flask/twilio app: https://www.twilio.com/blog/build-smart-auto-response-bot-python-flask-twilio-sms-cleverbot
 # tutorial for DB stuff: https://www.codementor.io/garethdwyer/building-a-crud-application-with-flask-and-sqlalchemy-dm3wv7yu2
@@ -172,7 +194,7 @@ def give_event_time(event_id, request):
     db.session.commit()
     # print('gave event #' + event.id ' time:' + event.time)
 
-    responseText = "Perfect. " + event.name + " at " + event.location + " at " + event.time + ". Who should I invite? send user IDs separated by a comma."
+    responseText = "Perfect. " + event.name + " at " + event.location + " at " + event.time + ". Who should I invite? send user IDs separated by a comma or say 'everyone'."
 
     return responseText
 
@@ -183,15 +205,24 @@ def give_event_attendees(event_id, request):
     responseText = ''
 
     attendeetext = request.form['Body']
-    attendeelist = attendeetext.split(',')
-    for i in attendeelist:
-        i = ''.join(c for c in i if c.isdigit())
+    # if text is 'everyone' invite all of that user's friends
+    if attendeetext.lower() == 'everyone':
+        attendeelist = []
+        this_user_phone = request.values['From']
+        this_user_id = db.session.query(User).filter_by(phone=this_user_phone).one().id
+        thisUsersFriends = db.session.query(Friends).filter_by(user_id=this_user_id).all()
+        for i in thisUsersFriends:
+            attendeelist.append(i.users_friend_id)
+    else:
+        attendeelist = attendeetext.split(',')
+        for i in attendeelist:
+            i = int(''.join(c for c in i if c.isdigit()))
     successfullyadded = []
     couldnotadd =[]
     for i in attendeelist:
         user_exists = db.session.query(User.id).filter_by(id=i).scalar() is not None
         if user_exists:
-            thisattendee = int(i)
+            thisattendee = i #int(i)
             relationship = Attendees(status=0, user_id=thisattendee, event_id=event_id)
             db.session.add(relationship)
             db.session.commit()

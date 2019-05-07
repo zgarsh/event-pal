@@ -174,8 +174,11 @@ def give_event_attendees(event_id, request):
     responseText = ''
 
     attendeetext = request.form['Body']
-    attendeelist = attendeetext.split(', ')
+    attendeelist = attendeetext.split(',')
+    for i in attendeelist:
+        i = ''.join(c for c in i if c.isdigit())
     successfullyadded = []
+    couldnotadd =[]
     for i in attendeelist:
         user_exists = db.session.query(User.id).filter_by(id=i).scalar() is not None
         if user_exists:
@@ -185,14 +188,18 @@ def give_event_attendees(event_id, request):
             db.session.commit()
             successfullyadded.append(str(thisattendee))
         else:
-            responseText += 'No user with ID ' + i
+            couldnotadd.append(i)
 
     # update event status to 4
     event = db.session.query(Event).filter_by(id=event_id).one()
     event.status = 4
     db.session.commit()
-
-    responseText += ' Added users ' + ' and '.join(successfullyadded)
+    if successfullyadded:
+        responseText += 'Added users: ' + ', '.join(successfullyadded)
+    if successfullyadded and couldnotadd:
+        responseText += '\n'
+    if couldnotadd:
+        responseText += 'Could not add: ' + ', '.join(couldnotadd)
     return responseText
 
 

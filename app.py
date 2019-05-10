@@ -19,7 +19,7 @@ client = Client(twilio_account_sid, twilio_auth_token)
 # sample
 def send_sms():
 
-    body = "Thank you for subscribing to CAT FACTS!"
+    body = "Thank you for subscribing to CAT FACTS! Did you know that There are over 500 million domestic cats in the world???"
 
     to = '+17147560044',
     client.messages.create(
@@ -97,15 +97,37 @@ def choose_action(request):
     # print(request.values['From'])
 
     fullMessage = request.form['Body']
+    responseText = 'Thank you for subscribing to CAT FACTS.'
 
-    responseText = 'Keep working'
+    # TODO: how to handle duplicate entries for this and for normal create user flow
+    if fullMessage.lower().startswith('secretpassword'):
+        parsedmessage = fullMessage.split()
+        if len(parsedmessage) > 1:
+            newname = ' '.join(parsedmessage[1:])
+        else:
+            newname = 'secret spy'
+        newphone = request.values['From']
+        user = User(status=0, creator=0, name=newname, phone=newphone)
+        db.session.add(user)
+        db.session.commit()
+        print('created new user', newname, newphone)
+        responseText = "shhhhh. you've been added but don't tell anyone"
+        return responseText
 
     # Get all events for that user
-    thisUsersEvents = db.session.query(Event).filter_by(owner=1).all()
-    thisUsersUsers = db.session.query(User).filter_by(creator=1).all()
+    try:
+        # if they are already signed up, get ID
+        thisUsersID = db.session.query(User).filter_by(phone=request.values['From']).one().id
+    except:
+        # user is not registered
+        responseText = 'Please ask Zach to add you as a user!'
+        return responseText
 
-    # Determine if any of user's events has status <3. If yes, prompt them to complete it
-    # ASSUMPTION: only one event per user can have status <3 at a time
+    thisUsersEvents = db.session.query(Event).filter_by(owner=thisUsersID).all()
+    thisUsersUsers = db.session.query(User).filter_by(creator=thisUsersID).all()
+
+    # Determine if any of user's events has status <4. If yes, prompt them to complete it
+    # ASSUMPTION: only one event per user can have status <4 at a time
     for i in range(len(thisUsersEvents)):
         if thisUsersEvents[i].status == 0:
             event_id = thisUsersEvents[i].id
@@ -134,10 +156,11 @@ def choose_action(request):
             user_in_prog = thisUsersUsers[i].id
             responseText = give_user_phone(user_in_prog, request)
 
-    if fullMessage == 'Create new event':
+    # If no in-progress events or users, determine if user is trying to create event or user
+    if fullMessage.lower() in ['create new event', 'new event', 'create event']:
         responseText = create_event(request)
 
-    if fullMessage == 'Add user':
+    if fullMessage.lower() in ['add user', 'create user', 'new user', 'add new user', 'create new user']:
         responseText = create_user(request)
 
     return responseText
@@ -146,13 +169,19 @@ def choose_action(request):
 def create_event(request):
     """creates new nameless event given request object"""
 
-    # TODO: owner can't always be 1 - need to create users and match based on phone number
-    event = Event(status=0, owner=1)
-    db.session.add(event)
-    db.session.commit()
-    print('created new event')
+    requestor_phone = request.values['From']
+    requestor_id = db.session.query(User).filter_by(phone=requestor_phone).one().id
 
-    responseText = "Ok! What's a good title for the event? Say something like 'Abby's quincinera'"
+    if requestor_id == 1:
+        event = Event(status=0, owner=1)
+        db.session.add(event)
+        db.session.commit()
+        print('created new event')
+
+        responseText = "Ok! What's a good title for the event? Say something like 'Abby's quincinera'"
+
+    else:
+        responseText = "Please ask Zach to help add an event :)"
 
     return responseText
 
@@ -246,12 +275,19 @@ def give_event_attendees(event_id, request):
 def create_user(request):
     """create new user given request"""
 
-    user = User(status=0, creator=1)
-    db.session.add(user)
-    db.session.commit()
-    print('created new user')
+    requestor_phone = request.values['From']
+    requestor_id = db.session.query(User).filter_by(phone=requestor_phone).one().id
 
-    responseText = "Ok I'll add a new user. What is their name?"
+    if requestor_id == 1:
+        user = User(status=0, creator=1)
+        db.session.add(user)
+        db.session.commit()
+        print('created new user')
+
+        responseText = "Ok I'll add a new user. What is their name?"
+
+    else:
+        responseText = "Please ask Zach to help add a new user :)"
 
     return responseText
 
@@ -291,11 +327,41 @@ def give_user_phone(user_id, request):
     return responseText
 
 
+def send_invites(event_id):
+    """send invites to everyone invited to event and returns nohing"""
+
+    invitees = db.session.query(Attendees).filter_by(event_id=event_id).all()
+    event = db.session.query(Event).filter_by(id=event_id).one()
+
+    for invitee in invitees:
+
+        inviteephone = db.session.query(User).filter_by(id=invitee.user_id).one().phone
+
+        body = "Hello! I am a bot helping Zach to coordinate an event. Are you interested in going to this event? \n"
+        body += event.name + "\n"
+        body += event.location + "\n"
+        body += event.time + "\n \n"
+        body += "(you can reply 'STOP' to never be invited to another event)"
+
+        print('trying to send message:', body, 'to', inviteephone)
+
+        client.messages.create(
+            inviteephone,
+            from_=twilio_number,
+            body=body)
+
+    pass
+
+
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():
+    print('message from:', request.values['From'])
+
     message_body = request.form['Body']
+    print('message:', message_body)
 
     responseText = choose_action(request)
+    print('response:', responseText)
 
     resp = MessagingResponse()
     resp.message(responseText)

@@ -2,3 +2,4 @@ chatterdb.db
 *.pyc
 venv/
 secrets.py
+eventpal-key.pem

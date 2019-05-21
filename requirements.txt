@@ -7,6 +7,7 @@ cryptography==2.6.1
 enum34==1.1.6
 Flask==1.0.2
 Flask-SQLAlchemy==2.4.0
+gunicorn==19.9.0
 idna==2.8
 ipaddress==1.0.22
 itsdangerous==1.1.0

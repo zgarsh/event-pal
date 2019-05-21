@@ -2,7 +2,11 @@ import os
 from flask import Flask, request, redirect
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
-from secrets import twilio_account_sid, twilio_auth_token, twilio_number
+# from secrets import twilio_account_sid, twilio_auth_token, twilio_number
+# change line above to use environment variables instead
+twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
+twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
+twilio_number = os.environ['TWILIO_NUMBER']
 
 from flask_sqlalchemy import SQLAlchemy
 

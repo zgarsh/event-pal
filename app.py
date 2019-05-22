@@ -31,7 +31,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # new:
-heroku = Heroku(app)
+# heroku = Heroku(app) #commenting this out but I feel like I need this maybe
 
 db = SQLAlchemy(app)
 

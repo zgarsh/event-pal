@@ -8,12 +8,14 @@ from twilio.rest import Client
 
 
 # client for sending SMS that aren't responses (inviting guests)
-client = Client(twilio_account_sid, twilio_auth_token)
+
 # from secrets import twilio_account_sid, twilio_auth_token, twilio_number
 # change line above to use environment variables instead
 twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
 twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
 twilio_number = os.environ['TWILIO_NUMBER']
+
+client = Client(twilio_account_sid, twilio_auth_token)
 
 # Connect to heroku postgres DB
 # DATABASE_URL = os.environ['DATABASE_URL']

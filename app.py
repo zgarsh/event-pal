@@ -16,7 +16,7 @@ twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
 twilio_number = os.environ['TWILIO_NUMBER']
 
 # Connect to heroku postgres DB
-DATABASE_URL = os.environ['DATABASE_URL']
+# DATABASE_URL = os.environ['DATABASE_URL']
 
 
 # project_dir = os.path.dirname(os.path.abspath(__file__))
@@ -24,18 +24,14 @@ DATABASE_URL = os.environ['DATABASE_URL']
 
 app = Flask(__name__)
 # app.config["SQLALCHEMY_DATABASE_URI"] = database_file
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # new:
 heroku = Heroku(app)
 
 db = SQLAlchemy(app)
-
-
-
-
-
-
 
 
 

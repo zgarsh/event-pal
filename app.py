@@ -35,9 +35,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-
-
-
 # sample
 def send_sms():
 
@@ -79,14 +76,14 @@ class User(db.Model):
     phone = db.Column(db.String(80))
 
 # these two functions are new!
-    def __init__(self, creator, status, name, phone):
-        self.creator = creator
-        self.status = status
-        self.name = name
-        self.phone = phone
-
-    def __repr__(self):
-        return '<id {}>'.format(self.id)
+    # def __init__(self, creator, status, name, phone):
+    #     self.creator = creator
+    #     self.status = status
+    #     self.name = name
+    #     self.phone = phone
+    #
+    # def __repr__(self):
+    #     return '<id {}>'.format(self.id)
 
 
 

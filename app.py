@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 # new:
-from flask_heroku import Heroku
+# from flask_heroku import Heroku
 
 
 # client for sending SMS that aren't responses (inviting guests)
@@ -86,7 +86,7 @@ class User(db.Model):
     def __repr__(self):
         return '<id {}>'.format(self.id)
 
-        
+
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)

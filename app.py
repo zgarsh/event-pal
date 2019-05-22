@@ -1,24 +1,44 @@
 import os
 from flask import Flask, request, redirect
+from flask_sqlalchemy import SQLAlchemy
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
+# new:
+from flask_heroku import Heroku
+
+
+# client for sending SMS that aren't responses (inviting guests)
+client = Client(twilio_account_sid, twilio_auth_token)
 # from secrets import twilio_account_sid, twilio_auth_token, twilio_number
 # change line above to use environment variables instead
 twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
 twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
 twilio_number = os.environ['TWILIO_NUMBER']
 
-from flask_sqlalchemy import SQLAlchemy
+# Connect to heroku postgres DB
+DATABASE_URL = os.environ['DATABASE_URL']
 
-project_dir = os.path.dirname(os.path.abspath(__file__))
-database_file = "sqlite:///{}".format(os.path.join(project_dir, "chatterdb.db"))
+
+# project_dir = os.path.dirname(os.path.abspath(__file__))
+# database_file = "sqlite:///{}".format(os.path.join(project_dir, "chatterdb.db"))
 
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = database_file
+# app.config["SQLALCHEMY_DATABASE_URI"] = database_file
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS']
+
+# new:
+heroku = Heroku(app)
 
 db = SQLAlchemy(app)
-# client for sending SMS that aren't responses (inviting guests)
-client = Client(twilio_account_sid, twilio_auth_token)
+
+
+
+
+
+
+
+
+
 
 # sample
 def send_sms():

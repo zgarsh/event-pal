@@ -40,7 +40,7 @@ def send_sms():
 
     body = "Thank you for subscribing to CAT FACTS! Did you know that There are over 500 million domestic cats in the world???"
 
-    to = '+17147560044',
+    to = '+16505552948',
     client.messages.create(
         to,
         from_=twilio_number,
@@ -379,8 +379,14 @@ def sms_reply():
     message_body = request.form['Body']
     print('message:', message_body)
 
-    responseText = choose_action(request)
-    print('response:', responseText)
+    user = db.session.query(User).filter_by(phone = request.values['From']).one()
+
+    if user.id == 1:
+        responseText = choose_action(request)
+        print('response to Zach:', responseText)
+    else:
+        responseText = choose_action(request)
+        print('response to someone else:', responseText)
 
     resp = MessagingResponse()
     resp.message(responseText)

@@ -109,7 +109,7 @@ class Friends(db.Model):
 # 3: declined
 
 
-def choose_action(request):
+def choose_action_host(request):
     """receives request and decides what to do next"""
 
     # print(request.values)
@@ -118,29 +118,31 @@ def choose_action(request):
     fullMessage = request.form['Body']
     responseText = 'Hello'
 
-    # TODO: how to handle duplicate entries for this and for normal create user flow
-    if fullMessage.lower().startswith('secretpassword'):
-        parsedmessage = fullMessage.split()
-        if len(parsedmessage) > 1:
-            newname = ' '.join(parsedmessage[1:])
-        else:
-            newname = 'secret spy'
-        newphone = request.values['From']
-        user = User(status=0, creator=0, name=newname, phone=newphone)
-        db.session.add(user)
-        db.session.commit()
-        print('created new user', newname, newphone)
-        responseText = "shhhhh. you've been added but don't tell anyone"
-        return responseText
+    # # TODO: how to handle duplicate entries for this and for normal create user flow
+    # if fullMessage.lower().startswith('secretpassword'):
+    #     parsedmessage = fullMessage.split()
+    #     if len(parsedmessage) > 1:
+    #         newname = ' '.join(parsedmessage[1:])
+    #     else:
+    #         newname = 'secret spy'
+    #     newphone = request.values['From']
+    #     user = User(status=0, creator=0, name=newname, phone=newphone)
+    #     db.session.add(user)
+    #     db.session.commit()
+    #     print('created new user', newname, newphone)
+    #     responseText = "shhhhh. you've been added but don't tell anyone"
+    #     return responseText
+    #
+    # # Get all events for that user
+    # try:
+    #     # if they are already signed up, get ID
 
-    # Get all events for that user
-    try:
-        # if they are already signed up, get ID
-        thisUsersID = db.session.query(User).filter_by(phone=request.values['From']).one().id
-    except:
-        # user is not registered
-        responseText = 'Please ask Zach to add you as a user!'
-        return responseText
+    thisUsersID = db.session.query(User).filter_by(phone=request.values['From']).one().id
+
+    # except:
+    #     # user is not registered
+    #     responseText = 'Please ask Zach to add you as a user!'
+    #     return responseText
 
     thisUsersEvents = db.session.query(Event).filter_by(owner=thisUsersID).all()
     thisUsersUsers = db.session.query(User).filter_by(creator=thisUsersID).all()
@@ -184,6 +186,37 @@ def choose_action(request):
 
     return responseText
 
+def choose_action_guest(request):
+    """receives request and decides what to do next"""
+
+    fullMessage = request.form['Body']
+    responseText = 'Hello'
+
+    # TODO: how to handle duplicate entries for this and for normal create user flow
+    if fullMessage.lower().startswith('secretpassword'):
+        parsedmessage = fullMessage.split()
+        if len(parsedmessage) > 1:
+            newname = ' '.join(parsedmessage[1:])
+        else:
+            newname = 'secret spy'
+        newphone = request.values['From']
+        user = User(status=0, creator=0, name=newname, phone=newphone)
+        db.session.add(user)
+        db.session.commit()
+        print('created new user', newname, newphone)
+        responseText = "shhhhh. you've been added but don't tell anyone"
+        return responseText
+
+    # See if that user has been added
+    try:
+        # if they are already signed up, get ID
+        thisUsersID = db.session.query(User).filter_by(phone=request.values['From']).one().id
+    except:
+        # user is not registered
+        responseText = 'Please ask Zach to add you as a user!'
+        return responseText
+
+    return responseText
 
 def create_event(request):
     """creates new nameless event given request object"""
@@ -382,10 +415,12 @@ def sms_reply():
     user = db.session.query(User).filter_by(phone = request.values['From']).one()
 
     if user.id == 1:
-        responseText = choose_action(request)
+        # user is me
+        responseText = choose_action_host(request)
         print('response to Zach:', responseText)
     else:
-        responseText = choose_action(request)
+        # user is someone else
+        responseText = choose_action_guest(request)
         print('response to someone else:', responseText)
 
     resp = MessagingResponse()

@@ -116,7 +116,7 @@ def choose_action(request):
     # print(request.values['From'])
 
     fullMessage = request.form['Body']
-    responseText = 'Thank you for subscribing to CAT FACTS.'
+    responseText = 'Hello'
 
     # TODO: how to handle duplicate entries for this and for normal create user flow
     if fullMessage.lower().startswith('secretpassword'):

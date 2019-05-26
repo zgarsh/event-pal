@@ -107,6 +107,9 @@ class Friends(db.Model):
 # 2: maybe
 # 3: declined
 
+#################################################
+################ CHOOSE ACTIONS #################
+#################################################
 
 def choose_action_host(request):
     """receives request and decides what to do next"""
@@ -179,6 +182,12 @@ def choose_action_host(request):
 
         return responseText
 
+    if fullMessage.lower() in ['show users', 'all users', 'show all users']:
+        responseText = show_users()
+
+    if fullMessage.lower() in ['show events', 'all events', 'show all events']:
+        responseText = show_events()
+
     return responseText
 
 def choose_action_guest(request):
@@ -211,7 +220,19 @@ def choose_action_guest(request):
         responseText = 'Please ask Zach to add you as a user!'
         return responseText
 
+    # See if they have pending invites
+    thisGuestsEvents = db.session.query(Attendees).filter_by(user_id = thisUsersID).all()
+
+    for i in range(len(thisGuestsEvents)):
+        if thisGuestsEvents[i].status == 0:
+            event_pending_rsvp = thisGuestsEvents[i].event_id
+            responseText = give_RSVP(event_id, request) # FINISH THIS FUNCTION BELOW
+
     return responseText
+
+#################################################
+####### EVENT CREATION WORKFLOW #################
+#################################################
 
 def create_event(request):
     """creates new nameless event given request object"""
@@ -321,6 +342,10 @@ def give_event_attendees(event_id, request):
     return responseText
 
 
+#################################################
+######## USER CREATION WORKFLOW #################
+#################################################
+
 def create_user(request):
     """create new user given request"""
 
@@ -375,6 +400,53 @@ def give_user_phone(user_id, request):
 
     return responseText
 
+#################################################
+############# SHOW THINGS #######################
+#################################################
+
+def show_users():
+    """show all user details"""
+
+    all_users = db.session.query(User).all()
+
+    responseText = 'Name, ID, phone \n'
+
+    for i in range(len(all_users)):
+        responseText += all_users[i].name
+        responseText += ', '
+        responseText += all_users[i].id
+        responseText += ', '
+        responseText += all_users[i].phone
+        responseText += '\n'
+
+    return responseText
+
+
+def show_events():
+    """show all event details"""
+
+    all_events = db.session.query(Event).all()
+
+    responseText = 'Name, ID, Location, Time, Status \n'
+
+    for i in range(len(all_events)):
+        responseText += all_events[i].name
+        responseText += ', '
+        responseText += all_events[i].id
+        responseText += ', '
+        responseText += all_events[i].location
+        responseText += ', '
+        responseText += all_events[i].time
+        responseText += ', '
+        responseText += all_events[i].status
+        responseText += '\n'
+
+    return responseText
+
+
+#################################################
+################## SEND INVITES #################
+#################################################
 
 def send_invites(event_id, host_message):
     """send invites to everyone invited to event and returns nothing"""
@@ -405,6 +477,35 @@ def send_invites(event_id, host_message):
 
     pass
 
+#################################################
+##### INVITEE RESPONSE WORKFLOW #################
+#################################################
+
+# if this user has been invited to an event, get their RSVP
+def give_RSVP(event_id, request):
+    """given request and event id, determine if guest replied with an rsvp and assign that to Attendees table"""
+
+    responseText = "Sorry - this function isn't done yet!"
+
+    attendance = db.session.query(Attendees).filter_by(id=event_id).one()
+
+    if # yes :
+        attendance.status = 1
+        db.session.commit(attendance)
+        responseText = "Great! I'll let Zach know"
+    elif # no :
+        attendance.status = 3
+        db.session.commit(attendance)
+        responseText = "Bummer. Maybe next time!"
+    else:
+        responseText = "Sorry I don't understand. Please try again"
+
+    return responseText
+
+
+#################################################
+######################## !DALE! #################
+#################################################
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():

@@ -487,13 +487,15 @@ def give_RSVP(event_id, request):
 
     responseText = "Sorry - this function isn't done yet!"
 
+    fullMessage = request.form['Body']
+
     attendance = db.session.query(Attendees).filter_by(id=event_id).one()
 
-    if # yes :
+    if fullMessage.lower() in ['yes', 'yes!', 'sure']
         attendance.status = 1
         db.session.commit(attendance)
         responseText = "Great! I'll let Zach know"
-    elif # no :
+    elif fullMessage.lower() in ['no', 'no thanks']
         attendance.status = 3
         db.session.commit(attendance)
         responseText = "Bummer. Maybe next time!"

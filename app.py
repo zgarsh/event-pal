@@ -160,6 +160,26 @@ def choose_action_host(request):
     if fullMessage.lower() in ['add user', 'create user', 'new user', 'add new user', 'create new user']:
         responseText = create_user(request)
 
+    if fullMessage.lower().startswith('send invites'):
+        parsedmessage = fullMessage.split(',')
+        if len(parsedmessage) < 3:
+            responseText = "Please reply with 'send invites', <event id>, <your message>"
+            return responseText
+        try:
+            event = db.session.query(Event).filter_by(id=parsedmessage[1]).one()
+        except:
+            responseText = "Please give a valid event ID"
+            return responseText
+
+        event_id = event.id
+        host_message = parsedmessage[2]
+
+        send_invites(event_id, host_message)
+
+        responseText = 'Trying to send invites for event ' + str(event_id)
+
+        return responseText
+
     return responseText
 
 def choose_action_guest(request):
@@ -297,8 +317,7 @@ def give_event_attendees(event_id, request):
         responseText += '\n'
     if couldnotadd:
         responseText += 'Could not add: ' + ', '.join(couldnotadd)
-    responseText += '\n'
-    responseText += "To send invites, reply: \n'send invites, <event ID>, <message to invitees>.'"
+    responseText += "\nTo send invites, reply: \n'send invites, <event ID>, <message to invitees>.'"
     responseText += "\nThis event's ID is: " + str(event_id)
     return responseText
 
@@ -358,7 +377,7 @@ def give_user_phone(user_id, request):
     return responseText
 
 
-def send_invites(event_id):
+def send_invites(event_id, host_message):
     """send invites to everyone invited to event and returns nothing"""
 
     invitees = db.session.query(Attendees).filter_by(event_id=event_id).all()
@@ -372,6 +391,7 @@ def send_invites(event_id):
         body += event.name + "\n"
         body += event.location + "\n"
         body += event.time + "\n \n"
+        body += "Zach's message: " + host_message + "\n \n"
         body += "(you can reply 'STOP' to never be invited to another event)"
 
         print('trying to send message:', body, 'to', inviteephone)

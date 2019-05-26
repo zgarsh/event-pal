@@ -118,31 +118,7 @@ def choose_action_host(request):
     fullMessage = request.form['Body']
     responseText = 'Hello'
 
-    # # TODO: how to handle duplicate entries for this and for normal create user flow
-    # if fullMessage.lower().startswith('secretpassword'):
-    #     parsedmessage = fullMessage.split()
-    #     if len(parsedmessage) > 1:
-    #         newname = ' '.join(parsedmessage[1:])
-    #     else:
-    #         newname = 'secret spy'
-    #     newphone = request.values['From']
-    #     user = User(status=0, creator=0, name=newname, phone=newphone)
-    #     db.session.add(user)
-    #     db.session.commit()
-    #     print('created new user', newname, newphone)
-    #     responseText = "shhhhh. you've been added but don't tell anyone"
-    #     return responseText
-    #
-    # # Get all events for that user
-    # try:
-    #     # if they are already signed up, get ID
-
     thisUsersID = db.session.query(User).filter_by(phone=request.values['From']).one().id
-
-    # except:
-    #     # user is not registered
-    #     responseText = 'Please ask Zach to add you as a user!'
-    #     return responseText
 
     thisUsersEvents = db.session.query(Event).filter_by(owner=thisUsersID).all()
     thisUsersUsers = db.session.query(User).filter_by(creator=thisUsersID).all()
@@ -321,6 +297,9 @@ def give_event_attendees(event_id, request):
         responseText += '\n'
     if couldnotadd:
         responseText += 'Could not add: ' + ', '.join(couldnotadd)
+    responseText += '\n'
+    responseText += "To send invites, reply 'send invites, <event ID>, <message to invitees>.'"
+    responseText += "This event's ID is " + event_id
     return responseText
 
 
@@ -380,7 +359,7 @@ def give_user_phone(user_id, request):
 
 
 def send_invites(event_id):
-    """send invites to everyone invited to event and returns nohing"""
+    """send invites to everyone invited to event and returns nothing"""
 
     invitees = db.session.query(Attendees).filter_by(event_id=event_id).all()
     event = db.session.query(Event).filter_by(id=event_id).one()

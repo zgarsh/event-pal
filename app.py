@@ -298,8 +298,8 @@ def give_event_attendees(event_id, request):
     if couldnotadd:
         responseText += 'Could not add: ' + ', '.join(couldnotadd)
     responseText += '\n'
-    responseText += "To send invites, reply 'send invites, <event ID>, <message to invitees>.'"
-    responseText += "This event's ID is " + str(event_id)
+    responseText += "To send invites, reply: \n'send invites, <event ID>, <message to invitees>.'"
+    responseText += "\nThis event's ID is: " + str(event_id)
     return responseText
 
 

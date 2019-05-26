@@ -226,7 +226,7 @@ def choose_action_guest(request):
     for i in range(len(thisGuestsEvents)):
         if thisGuestsEvents[i].status == 0:
             event_pending_rsvp = thisGuestsEvents[i].event_id
-            responseText = give_RSVP(event_id, request) # FINISH THIS FUNCTION BELOW
+            responseText = give_RSVP(event_pending_rsvp, request)
 
     return responseText
 

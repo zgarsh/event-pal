@@ -6,7 +6,6 @@ from twilio.rest import Client
 # new:
 # from flask_heroku import Heroku
 
-
 # client for sending SMS that aren't responses (inviting guests)
 
 # from secrets import twilio_account_sid, twilio_auth_token, twilio_number
@@ -396,10 +395,13 @@ def send_invites(event_id, host_message):
 
         print('trying to send message:', body, 'to', inviteephone)
 
-        client.messages.create(
-            inviteephone,
-            from_=twilio_number,
-            body=body)
+        try:
+            client.messages.create(
+                inviteephone,
+                from_=twilio_number,
+                body=body)
+        except:
+            print("couldn't send message to ", inviteephone)
 
     pass
 

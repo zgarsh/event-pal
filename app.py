@@ -414,9 +414,9 @@ def show_users():
     for i in range(len(all_users)):
         responseText += all_users[i].name
         responseText += ', '
-        responseText += all_users[i].id
+        responseText += str(all_users[i].id)
         responseText += ', '
-        responseText += all_users[i].phone
+        responseText += str(all_users[i].phone)
         responseText += '\n'
 
     return responseText
@@ -432,13 +432,13 @@ def show_events():
     for i in range(len(all_events)):
         responseText += all_events[i].name
         responseText += ', '
-        responseText += all_events[i].id
+        responseText += str(all_events[i].id)
         responseText += ', '
         responseText += all_events[i].location
         responseText += ', '
-        responseText += all_events[i].time
+        responseText += str(all_events[i].time)
         responseText += ', '
-        responseText += all_events[i].status
+        responseText += str(all_events[i].status)
         responseText += '\n'
 
     return responseText

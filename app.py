@@ -503,7 +503,7 @@ def give_RSVP(this_event_id, request):
     fullMessage = request.form['Body']
     this_user = db.session.query(User).filter_by(phone = request.values['From']).one()
 
-    attendance = db.session.query(Attendees).filter_by(event_id=this_event_id).filter_by(user_id=this_user.id).one()
+    attendance = db.session.query(Attendees).filter_by(event_id=this_event_id, user_id=this_user.id).one()
 
     if fullMessage.lower() in ['yes', 'yes!', 'sure']:
         attendance.status = 1

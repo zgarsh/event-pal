@@ -516,7 +516,7 @@ def give_RSVP(this_event_id, request):
     else:
         responseText = "Sorry I don't understand. I'm looking for something like 'yes' or 'no'"
 
-    host_alert = "message from" + this_user.id + ': ' + request.form['Body']
+    host_alert = "message from" + str(this_user.id) + ': ' + request.form['Body']
     message_host(host_alert)
 
     return responseText

@@ -449,7 +449,7 @@ def show_events():
 
 def show_help():
 
-    text = "new event\nadd user\nsend invites, <id>, <message>\n"
+    text = "Here are some options:\nnew event\nadd user\nsend invites, <id>, <message>\nshow users\nshow events"
 
     message_host(text)
 
@@ -494,6 +494,7 @@ def send_invites(event_id, host_message):
 #################################################
 
 # if this user has been invited to an event, get their RSVP
+
 def give_RSVP(this_event_id, request):
     """given request and event id, determine if guest replied with an rsvp and assign that to Attendees table"""
 
@@ -502,7 +503,7 @@ def give_RSVP(this_event_id, request):
     fullMessage = request.form['Body']
     this_user = db.session.query(User).filter_by(phone = request.values['From']).one()
 
-    attendance = db.session.query(Attendees).filter_by(event_id=event_id).filter_by(user_id=this_user.id).one()
+    attendance = db.session.query(Attendees).filter_by(event_id=this_event_id).filter_by(user_id=this_user.id).one()
 
     if fullMessage.lower() in ['yes', 'yes!', 'sure']:
         attendance.status = 1

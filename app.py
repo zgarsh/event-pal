@@ -500,9 +500,9 @@ def give_RSVP(this_event_id, request):
     responseText = "Sorry - this function isn't done yet!"
 
     fullMessage = request.form['Body']
-    this_user_id = db.session.query(User).filter_by(phone = request.values['From']).one()
+    this_user = db.session.query(User).filter_by(phone = request.values['From']).one()
 
-    attendance = db.session.query(Attendees).filter_by(event_id=event_id).filter_by(user_id=this_user_id).one()
+    attendance = db.session.query(Attendees).filter_by(event_id=event_id).filter_by(user_id=this_user.id).one()
 
     if fullMessage.lower() in ['yes', 'yes!', 'sure']:
         attendance.status = 1
@@ -513,9 +513,10 @@ def give_RSVP(this_event_id, request):
         db.session.commit(attendance)
         responseText = "Bummer. Maybe next time!"
     else:
-        responseText = "Sorry I don't understand. Please try again"
+        responseText = "Sorry I don't understand. I'm looking for something like 'yes' or 'no'"
 
-    host_alert =
+    host_alert = "message from" + this_user.id + ': ' + request.form['Body']
+    message_host(host_alert)
 
     return responseText
 

@@ -449,7 +449,7 @@ def show_events():
 
 def show_help():
 
-    text = "this is the show_help function"
+    text = "new event\nadd user\nsend invites, <id>, <message>\n"
 
     message_host(text)
 

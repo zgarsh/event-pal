@@ -188,6 +188,9 @@ def choose_action_host(request):
     if fullMessage.lower() in ['show events', 'all events', 'show all events']:
         responseText = show_events()
 
+    if fullMessage.lower() in ['help', 'options', 'support']:
+        responseText = show_help()
+
     return responseText
 
 def choose_action_guest(request):
@@ -444,6 +447,15 @@ def show_events():
     return responseText
 
 
+def show_help():
+
+    text = "this is the show_help function"
+
+    message_host(text)
+
+    pass
+
+
 #################################################
 ################## SEND INVITES #################
 #################################################
@@ -508,6 +520,18 @@ def give_RSVP(event_id, request):
 #################################################
 ######################## !DALE! #################
 #################################################
+
+def message_host(text):
+    try:
+        client.messages.create(
+            os.environ['HOST_PHONE'],
+            from_=twilio_number,
+            body=text)
+    except:
+        print("couldn't send message to ", os.environ['HOST_PHONE'])
+
+    pass
+
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_reply():

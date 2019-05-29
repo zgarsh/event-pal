@@ -1,6 +1,7 @@
 import os
 from flask import Flask, request, redirect
-from flask_sqlalchemy import SQLAlchemy, and_
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import and_
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 # new:

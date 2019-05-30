@@ -224,6 +224,10 @@ def choose_action_guest(request):
         responseText = 'Please ask Zach to add you as a user!'
         return responseText
 
+    if fullMessage.lower().startswith('select'):
+        responseText = "Wowwww you think you're soooo smart!"
+        return responseText
+
     # See if they have pending invites
     thisGuestsEvents = db.session.query(Attendees).filter_by(user_id = thisUsersID).all()
 
@@ -413,7 +417,7 @@ def show_users():
 
     all_users = db.session.query(User).all()
 
-    responseText = 'Name, ID, phone \n'
+    responseText = 'Name, ID, phone \n\n'
 
     for i in range(len(all_users)):
         responseText += all_users[i].name
@@ -431,7 +435,7 @@ def show_events():
 
     all_events = db.session.query(Event).all()
 
-    responseText = 'Name, ID, Location, Time, Status \n'
+    responseText = 'Name, ID, Location, Time, Status \n\n'
 
     for i in range(len(all_events)):
         responseText += all_events[i].name

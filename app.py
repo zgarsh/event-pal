@@ -183,6 +183,26 @@ def choose_action_host(request):
 
         return responseText
 
+    if fullMessage.lower().startswith('send page'):
+        parsedmessage = fullMessage.split(',')
+        if len(parsedmessage) < 3:
+            responseText = "Please reply with 'send invites', <event id>, <your message>"
+            return responseText
+        try:
+            event = db.session.query(Event).filter_by(id=parsedmessage[1]).one()
+        except:
+            responseText = "Please give a valid event ID"
+            return responseText
+
+        event_id = event.id
+        host_message = parsedmessage[2]
+
+        send_page(event_id, host_message)
+
+        responseText = 'Trying to send pages for event ' + str(event_id)
+
+        return responseText
+
     if fullMessage.lower() in ['show users', 'all users', 'show all users']:
         responseText = show_users()
 
@@ -481,6 +501,32 @@ def send_invites(event_id, host_message):
         body += event.time + "\n \n"
         body += "Zach's message: " + host_message + "\n \n"
         body += "(you can reply 'STOP' to never be invited to another event)"
+
+        print('trying to send message:', body, 'to', inviteephone)
+
+        try:
+            client.messages.create(
+                inviteephone,
+                from_=twilio_number,
+                body=body)
+        except:
+            print("couldn't send message to ", inviteephone)
+
+    pass
+
+
+def send_page(event_id, host_message):
+    """sends pages to confirmed guests and returns nothing"""
+
+    invitees = db.session.query(Attendees).filter_by(event_id=event_id, status=1).all()
+    event = db.session.query(Event).filter_by(id=event_id).one()
+
+    for invitee in invitees:
+
+        inviteephone = db.session.query(User).filter_by(id=invitee.user_id).one().phone
+
+        body = "Zach says: \n\n"
+        body += host_message
 
         print('trying to send message:', body, 'to', inviteephone)
 

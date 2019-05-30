@@ -504,8 +504,8 @@ def give_RSVP(this_event_id, request):
     fullMessage = request.form['Body']
     this_user = db.session.query(User).filter_by(phone = request.values['From']).one()
 
-    # attendance = db.session.query(Attendees).filter(Attendees.event_id==this_event_id, Attendees.user_id==this_user.id).one()
-    attendance = db.session.query(Attendees).filter(and_(Attendees.event_id==this_event_id,Attendees.user_id==this_user.id)).one() # need to import and_ ?
+    attendance = db.session.query(Attendees).filter(Attendees.event_id==this_event_id, Attendees.user_id==this_user.id).one()
+    # attendance = db.session.query(Attendees).filter(and_(Attendees.event_id==this_event_id,Attendees.user_id==this_user.id)).one() # commit takes one positional argument, two were given
     # attendance = db.session.query(Attendees).filter(Attendees.event_id==this_event_id).filter(Attendees.user_id==this_user.id).one() # commit takes one positional argument, two given
 
 

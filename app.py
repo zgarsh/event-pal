@@ -570,8 +570,8 @@ def give_RSVP(this_event_id, request):
     else:
         responseText = "Sorry I don't understand. I'm looking for something like 'yes' or 'no'"
 
-    host_alert = "message from " + str(this_user.name) + ': ' + request.form['Body']
-    message_host(host_alert)
+    # host_alert = "message from " + str(this_user.name) + ': ' + request.form['Body']
+    # message_host(host_alert)
 
     return responseText
 
@@ -610,8 +610,13 @@ def sms_reply():
         responseText = choose_action_guest(request)
         print('response to someone else:', responseText)
 
+        host_alert = "message from " + str(user.name) + ': ' + message_body + "\n\n"
+        host_alert += "response: " + responseText
+        message_host(host_alert)
+
     resp = MessagingResponse()
     resp.message(responseText)
+
 
     return str(resp)
 

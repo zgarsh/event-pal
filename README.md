@@ -1,4 +1,5 @@
 # event-pal
+Eventpal is your own personal assistant for coordinating events with your friends. Want to go to dinner last minute but aren't in the mood to go alone? Ask eventpal to send a message to 3, 8, or all of your friends to let them know your plans. Eventpal will send an invite, handle RSVPs, and let you send updates to only confirmed attendees!
 
 ### DB setup
 delete chatterdb.db and then use python shell to:
